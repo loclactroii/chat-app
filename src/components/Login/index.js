@@ -2,15 +2,27 @@ import { Row, Col, Typography, Button } from "antd";
 // import React from "react";
 
 import { auth } from '../../firebase/config';
-import { FacebookAuthProvider, signInWithPopup } from "firebase/auth";
+import { FacebookAuthProvider, signInWithPopup, getAdditionalUserInfo } from "firebase/auth";
+import addDocument, { generateKeywords } from "../../firebase/service";
 
 
 const fbProvider = new FacebookAuthProvider()
-console.log(auth)
 
 function Login () {
-    const handleFbLogin = () => {
-        signInWithPopup(auth, fbProvider)
+    const handleFbLogin = async () => {
+        const data = await signInWithPopup(auth, fbProvider)
+        if(getAdditionalUserInfo(data).isNewUser) {
+
+            addDocument('users', {
+                displayName: data.user.displayName,
+                email: data.user.email,
+                photoURL: data.user.photoURL,
+                uid: data.user.uid,
+                providerId: data.providerId,
+                keyWords: generateKeywords(data.user.displayName)
+            })
+        }
+         
     }
 
     return (
